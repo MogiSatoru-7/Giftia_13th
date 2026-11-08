@@ -18,14 +18,17 @@ export default function Home() {
   const [results, setResults] = useState<Gift[] | null>(null);            // 検索結果
   const [error, setError] = useState("");                                 // つながらないときの文言
 
+  // デモ講義用の価格並び替え機能追加用（初期値は人気順とする）
+  const [sort, setSort] = useState("popular");
+
   // ② 検索ボタンの処理（API に聞くので、結果が返るまで待つ＝async/await）
   async function onSearch(e: React.FormEvent) {
     e.preventDefault(); // ページの再読み込みを止める
     setError("");
     // いま開いているタブの条件だけを送る（もう一方のタブの入力は送らない）
     const condition = mode === "standard"
-      ? { keyword, category, indivWrap: false, priceBand: "" }
-      : { keyword: "", category: "", indivWrap, priceBand };
+      ? { keyword, category, indivWrap: false, priceBand: "", sort } // デモ講義用の価格並び替え機能追加用（sortを追加）
+      : { keyword: "", category: "", indivWrap, priceBand, sort }; // デモ講義用の価格並び替え機能追加用（sortを追加）
     try {
       setResults(await searchGifts(condition));
     } catch (err) {
@@ -66,6 +69,13 @@ export default function Home() {
             </select>
           </>
         )}
+
+        {/* デモ講義用の価格並び替え機能追加用（両モード共通の並び順） */}
+        <select value={sort} onChange={(e) => setSort(e.target.value)}>
+          <option value="popular">人気順</option>
+          <option value="price">価格が安い順</option>
+        </select>
+
         <button type="submit">検索</button>
       </form>
 

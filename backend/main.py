@@ -43,6 +43,10 @@ def search(
     price_min: int | None = Query(default=None, ge=0, description="価格の下限（以上）"),
     price_max: int | None = Query(default=None, ge=0, description="価格の上限（以下）"),
     limit: int = Query(default=20, ge=1, le=100, description="返す件数"),
+
+    # デモ講義用：並び順を受け取る
+    sort: str = Query(default="popular"),
+
 ):
     """条件に合う商品を、人気順（直近1年の販売数）で上位 limit 件返す"""
     # ① 条件を WHERE に1つずつ足す（値は %s で渡し、SQL の文字列に直接つなげない）
@@ -64,12 +68,19 @@ def search(
         params.append(price_max)
     condition = " AND ".join(where)
 
+    # デモ講義用：並び順を決める（初期値は人気順）
+    order_by = "sales_count DESC, product_id"
+
+    if sort == "price":
+        order_by = "price ASC, product_id"
+
     # ② 件数と、人気順の上位 limit 件を取る
+    #デモ講義用：並び順を決める（初期値は人気順）
     total = fetch_all(f"SELECT COUNT(*) AS n FROM products WHERE {condition}", tuple(params))[0]["n"]
     rows = fetch_all(
         f"""SELECT product_id, category, brand, product_name, price, rating, review_count
             FROM products WHERE {condition}
-            ORDER BY sales_count DESC, product_id
+            ORDER BY {order_by}  
             LIMIT %s""",
         (*params, limit),
     )
